@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🎓 Student Engagement Detection System
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
@@ -496,3 +497,6 @@ If you use this system in academic research, please cite:
 **Built with ❤️ for educational innovation and AI research**
 
 *Empowering educators with AI-driven insights for better learning outcomes*
+=======
+# Student_identification_and_engagement_monitoring_system
+>>>>>>> 40b671963600a80454d4ac75b6cd051f2f97c060
