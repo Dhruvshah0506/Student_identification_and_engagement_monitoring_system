@@ -64,12 +64,12 @@ flowchart TD
     EE --> F
     D --> FF[System Exit]
     
-    style A fill:#e1f5fe
-    style M fill:#c8e6c9
-    style R fill:#fff3e0
-    style U fill:#f3e5f5
-    style W fill:#e8f5e8
-    style AA fill:#fce4ec
+    style A fill:#336699
+    style M fill:#003366
+    style R fill#336699
+    style U fill:#003366
+    style W fill:#003366
+    style AA fill:#336699
 ```
 
 ## About DAiSEE Dataset
