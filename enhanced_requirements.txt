@@ -1,0 +1,14 @@
+
+streamlit
+opencv-python
+numpy
+Pillow
+deepface
+tensorflow
+matplotlib
+pandas
+plotly
+seaborn
+EOL
+
+

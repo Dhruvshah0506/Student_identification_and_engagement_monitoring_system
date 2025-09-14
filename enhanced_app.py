@@ -53,6 +53,58 @@ def init_database():
     conn.close()
 
 init_database()
+# ADD: Import for model loading
+import joblib
+
+# ADD: Model loader class
+class TrainedModelLoader:
+    def __init__(self):
+        self.model = None
+        self.scaler = None 
+        self.label_encoder = None
+        self.model_loaded = False
+        self.load_trained_model()
+    
+    def load_trained_model(self):
+        try:
+            import glob
+            model_files = glob.glob('best_engagement_model_*.pkl')
+            scaler_files = glob.glob('scaler_*.pkl')
+            encoder_files = glob.glob('label_encoder_*.pkl')
+            
+            if model_files and scaler_files and encoder_files:
+                self.model = joblib.load(sorted(model_files)[-1])
+                self.scaler = joblib.load(sorted(scaler_files)[-1])
+                self.label_encoder = joblib.load(sorted(encoder_files)[-1])
+                self.model_loaded = True
+                st.success(f"✅ AI Model Loaded: {sorted(model_files)[-1].split('_')[-1]}")
+            else:
+                st.warning("⚠️ No trained model found. Using basic detection.")
+        except Exception as e:
+            st.error(f"❌ Model loading error: {e}")
+    
+    def predict_engagement(self, engagement_score, emotion, confidence, face_detected):
+        if not self.model_loaded:
+            return "basic_prediction", 0.5
+        
+        try:
+            emotion_map = {'happy': 0, 'sad': 1, 'angry': 2, 'fear': 3, 'surprise': 4, 'disgust': 5, 'neutral': 6}
+            emotion_encoded = emotion_map.get(emotion.lower(), 6)
+            
+            features = np.array([[engagement_score, emotion_encoded, confidence, int(face_detected)]])
+            features_scaled = self.scaler.transform(features)
+            
+            prediction = self.model.predict(features_scaled)[0]
+            probabilities = self.model.predict_proba(features_scaled)[0] if hasattr(self.model, 'predict_proba') else [0.5]
+            
+            predicted_label = self.label_encoder.inverse_transform([prediction])[0]
+            return predicted_label, max(probabilities)
+        except:
+            return "error", 0.5
+
+# Initialize the model
+trained_model = TrainedModelLoader()
+
 
 # Initialize session state
 if "stats" not in st.session_state:
@@ -282,6 +334,12 @@ if mode == "Live Detection":
                 
                 # Detect emotion and engagement
                 emotion, engagement_score = detect_emotion_engagement(face_region)
+
+                # ADD: Use AI model for prediction
+                ai_prediction, ai_confidence = trained_model.predict_engagement(
+                            engagement_score, emotion, recognition_confidence, True
+                )
+
                 
                 # Update statistics
                 st.session_state.stats["total_frames"] += 1
@@ -308,8 +366,14 @@ if mode == "Live Detection":
                 label = f"{student_name} ({recognition_confidence:.2f})"
                 cv2.putText(annotated_image, label, (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
                 
-                engagement_label = f"{emotion.title()} - Engagement: {engagement_score:.2f}"
-                cv2.putText(annotated_image, engagement_label, (x, y+h+20), cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+                # Show basic detection
+                engagement_label = f"{emotion.title()} - Score: {engagement_score:.2f}"
+                cv2.putText(annotated_image, engagement_label, (x, y+h+20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+                # ADD: Show AI prediction
+                ai_label = f"AI: {ai_prediction.upper()} ({ai_confidence:.2f})"
+                cv2.putText(annotated_image, ai_label, (x, y+h+40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+
                 
                 st.image(cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB), caption="Live Detection Results")
                 
